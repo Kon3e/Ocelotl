@@ -1,0 +1,288 @@
+import os
+import re
+import sys
+import json
+import time
+import argparse
+import itertools
+import threading
+from datetime import datetime
+from pathlib import Path
+
+# Variable global para controlar el spinner
+spinner_running = False
+
+# Spinner animado para mostrar durante procesos largos
+def spinner_task(message="Procesando..."):
+    for c in itertools.cycle(['|', '/', '-', '\\']):
+        if not spinner_running:
+            break
+        sys.stdout.write(f'\r{message} {c}')
+        sys.stdout.flush()
+        time.sleep(0.1)
+    sys.stdout.write('\r')
+
+# Logo ASCII de Ocelotl
+def show_logo():
+    logo = r"""
+       *******     ******  ******** **         *******   ********** **      
+  **/////**   **////**/**///// /**        **/////** /////**/// /**      
+ **     //** **    // /**      /**       **     //**    /**    /**      
+/**      /**/**       /******* /**      /**      /**    /**    /**      
+/**      /**/**       /**////  /**      /**      /**    /**    /**      
+//**     ** //**    **/**      /**      //**     **     /**    /**      
+ //*******   //****** /********/******** //*******      /**    /********
+  ///////     //////  //////// ////////   ///////       //     //////// 
+
+                Ocelotl - Escáner de Seguridad
+                    Autor: EduSec
+    """
+    print(logo)
+
+# Menú de ayuda
+def show_help():
+    print("\nComandos disponibles:")
+    print("  python ocelotl.py <ruta> [-o reporte.json] [-v] [--no-color]")
+    print("\nOpciones:")
+    print("  -v            Modo verbose, muestra todo el proceso")
+    print("  -o <archivo>  Guarda el reporte en formato JSON")
+    print("  --no-color    Desactiva colores en la salida")
+    print("  --help        Muestra este menú de ayuda\n")
+
+# Clase principal del escáner
+class WPContentScanner:
+    def __init__(self, base_path, verbose=False, use_colors=True):
+        self.base_path = Path(base_path)
+        self.verbose = verbose
+        self.results = {
+            'credentials': [],
+            'api_keys': [],
+            'config_files': [],
+            'sensitive_files': [],
+            'stats': {
+                'files_scanned': 0,
+                'matches_found': 0,
+                'start_time': datetime.now().isoformat(),
+                'errors': 0
+            }
+        }
+
+        self.colors = {
+            'red': '\033[91m' if use_colors else '',
+            'green': '\033[92m' if use_colors else '',
+            'yellow': '\033[93m' if use_colors else '',
+            'blue': '\033[94m' if use_colors else '',
+            'magenta': '\033[95m' if use_colors else '',
+            'cyan': '\033[96m' if use_colors else '',
+            'reset': '\033[0m' if use_colors else ''
+        }
+
+        self.patterns = {
+            'db_credentials': [
+                r'define\s*\(\s*[\'"]DB_NAME[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'define\s*\(\s*[\'"]DB_USER[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'define\s*\(\s*[\'"]DB_PASSWORD[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'define\s*\(\s*[\'"]DB_HOST[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
+            ],
+            'api_keys': [
+                r'[\'"]?api[_-]?key[\'"]?\s*[=:]\s*[\'"]([^\'"]{10,100})[\'"]',
+                r'[\'"]?secret[_-]?key[\'"]?\s*[=:]\s*[\'"]([^\'"]{10,100})[\'"]',
+                r'[\'"]?access[_-]?token[\'"]?\s*[=:]\s*[\'"]([^\'"]{10,100})[\'"]',
+                r'[\'"]?password[\'"]?\s*[=:]\s*[\'"]([^\'"]{3,50})[\'"]',
+                r'(sk_[a-zA-Z0-9]{20,50})',
+                r'(pk_[a-zA-Z0-9]{20,50})',
+                r'(AIza[0-9A-Za-z\\-_]{35})',
+                r'(gh[ops]_[0-9a-zA-Z]{36})',
+                r'(xox[bp]-[a-zA-Z0-9-]{10,})',
+                r'(Bearer\s+[a-zA-Z0-9\-_\.=]+)',
+            ],
+            'config_patterns': [
+                r'\$table_prefix\s*=\s*[\'"]([^\'"]+)[\'"]',
+                r'AUTH_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'SECURE_AUTH_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'LOGGED_IN_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'NONCE_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'ftp_user\s*=\s*[\'"]([^\'"]+)[\'"]',
+                r'ftp_pass\s*=\s*[\'"]([^\'"]+)[\'"]',
+            ]
+        }
+
+        self.target_extensions = {
+            '.php', '.js', '.json', '.yml', '.yaml', '.env', '.txt', '.config', '.ini', '.xml', '.py', '.rb', '.sh'
+        }
+
+    def log(self, message, level="info", color=None):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        prefix_map = {
+            "error": f"{self.colors['red']}[ERROR]{self.colors['reset']}",
+            "warning": f"{self.colors['yellow']}[WARNING]{self.colors['reset']}",
+            "success": f"{self.colors['green']}[SUCCESS]{self.colors['reset']}",
+            "info": f"{self.colors['blue']}[INFO]{self.colors['reset']}",
+            "found": f"{self.colors['magenta']}[FOUND]{self.colors['reset']}"
+        }
+        prefix = prefix_map.get(level, "[INFO]")
+        if color and color in self.colors:
+            message = f"{self.colors[color]}{message}{self.colors['reset']}"
+        print(f"{prefix} [{timestamp}] {message}")
+        sys.stdout.flush()
+
+    def is_text_file(self, file_path: Path) -> bool:
+        try:
+            with open(file_path, 'rb') as f:
+                chunk = f.read(1024)
+                return b'\0' not in chunk
+        except Exception as e:
+            self.results['stats']['errors'] += 1
+            if self.verbose:
+                self.log(f"No se pudo verificar {file_path}: {e}", "error")
+            return False
+
+    def search_patterns_in_file(self, file_path: Path):
+        matches = []
+        if not self.is_text_file(file_path):
+            return matches
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+                lines = content.split('\n')
+                for pattern_type, patterns in self.patterns.items():
+                    for pattern in patterns:
+                        for match in re.finditer(pattern, content, re.IGNORECASE):
+                            line_number = content[:match.start()].count('\n') + 1
+                            line_content = lines[line_number - 1] if line_number <= len(lines) else ""
+                            match_data = {
+                                'type': pattern_type,
+                                'pattern': pattern,
+                                'match': match.group(),
+                                'file': str(file_path),
+                                'line': line_number,
+                                'context': line_content.strip()[:200],
+                                'full_match': match.groups()
+                            }
+                            matches.append(match_data)
+                            if pattern_type == 'db_credentials':
+                                self.log(f"CREDENCIAL DB en {file_path}:{line_number}", "found", "red")
+                            elif pattern_type == 'api_keys':
+                                self.log(f"API KEY en {file_path}:{line_number}", "found", "magenta")
+        except Exception as e:
+            self.results['stats']['errors'] += 1
+            if self.verbose:
+                self.log(f"Error leyendo {file_path}: {e}", "error")
+        return matches
+
+    def find_sensitive_files(self):
+        self.log("Buscando archivos sensibles por nombre...", "info")
+        sensitive_files = []
+        sensitive_patterns = [
+            r'.*\.bak$', r'.*backup.*', r'.*~$', r'wp-config.*', r'config.*',
+            r'\.env.*', r'configuration.*', r'.*\.log$', r'debug.*',
+            r'.*\.sql$', r'.*\.dump$', r'.*\.db$', r'.*\.sqlite$', r'.*\.pem$', r'.*\.crt$'
+        ]
+        for file_path in self.base_path.rglob('*'):
+            if file_path.is_file():
+                filename = file_path.name.lower()
+                for pattern in sensitive_patterns:
+                    if re.match(pattern, filename):
+                        file_info = {
+                            'type': 'sensitive_file',
+                            'file': str(file_path),
+                            'size': file_path.stat().st_size,
+                            'pattern_matched': pattern
+                        }
+                        sensitive_files.append(file_info)
+                        self.log(f"Archivo sensible: {file_path}", "warning", "yellow")
+                        break
+        self.log(f"Encontrados {len(sensitive_files)} archivos sensibles", "success")
+        return sensitive_files
+
+    def scan_directory(self):
+        self.log(f"Iniciando escaneo en: {self.base_path}", "info")
+        self.log(f"Extensiones objetivo: {', '.join(self.target_extensions)}", "info")
+        global spinner_running
+        spinner_running = True
+        spinner_thread = threading.Thread(target=spinner_task, args=("Escaneando archivos...",))
+        spinner_thread.start()
+
+        self.results['sensitive_files'] = self.find_sensitive_files()
+        total_files = sum(1 for _ in self.base_path.rglob('*') if _.is_file() and _.suffix.lower() in self.target_extensions)
+        self.log(f"Estimados {total_files} archivos a escanear", "info")
+        for file_path in self.base_path.rglob('*'):
+            if file_path.is_file() and file_path.suffix.lower() in self.target_extensions:
+                self.results['stats']['files_scanned'] += 1
+                matches = self.search_patterns_in_file(file_path)
+                if matches:
+                    self.results['stats']['matches_found'] += len(matches)
+                    for match in matches:
+                        if match['type'] == 'db_credentials':
+                            self.results['credentials'].append(match)
+                        elif match['type'] == 'api_keys':
+                            self.results['api_keys'].append(match)
+                        else:
+                            self.results['config_files'].append(match)
+
+        spinner_running = False
+        spinner_thread.join()
+        self.results['stats']['end_time'] = datetime.now().isoformat()
+        self.log("Escaneo completado!", "success")
+        return self.results
+
+    def generate_report(self, output_file=None):
+        report = {
+            'scan_summary': self.results['stats'],
+            'credentials_found': self.results['credentials'],
+            'api_keys_found': self.results['api_keys'],
+            'config_matches': self.results['config_files'],
+            'sensitive_files': self.results['sensitive_files']
+        }
+        if output_file:
+            try:
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    json.dump(report, f, indent=2, ensure_ascii=False)
+                self.log(f"Reporte guardado en: {output_file}", "success")
+            except Exception as e:
+                self.log(f"Error guardando reporte: {e}", "error")
+        self.print_summary()
+        return report
+
+    def print_summary(self):
+        start = datetime.fromisoformat(self.results['stats']['start_time'])
+        end = datetime.fromisoformat(self.results['stats'].get('end_time', datetime.now().isoformat()))
+        duration = end - start
+        print("\n" + "="*60)
+        print(f" {self.colors['cyan']}RESUMEN FINAL DEL ESCANEO{self.colors['reset']}")
+        print("="*60)
+        print(f"{self.colors['blue']}• Duración:{self.colors['reset']} {duration}")
+        print(f"{self.colors['blue']}• Archivos escaneados:{self.colors['reset']} {self.results['stats']['files_scanned']}")
+        print(f"{self.colors['blue']}• Coincidencias encontradas:{self.colors['reset']} {self.results['stats']['matches_found']}")
+        print(f"{self.colors['blue']}• Errores:{self.colors['reset']} {self.results['stats']['errors']}")
+        print(f"\n{self.colors['yellow']}HALLAZGOS IMPORTANTES:{self.colors['reset']}")
+        print(f"{self.colors['red']}• Credenciales DB:{self.colors['reset']} {len(self.results['credentials'])}")
+        print(f"{self.colors['magenta']}• API Keys:{self.colors['reset']} {len(self.results['api_keys'])}")
+        print(f"{self.colors['yellow']}• Archivos sensibles:{self.colors['reset']} {len(self.results['sensitive_files'])}")
+        print(f"{self.colors['blue']}• Configuraciones:{self.colors['reset']} {len(self.results['config_files'])}")
+
+# Función principal
+def main():
+    parser = argparse.ArgumentParser(description='Ocelotl - Escáner de Seguridad para content, archivos, con logging en tiempo real')
+    parser.add_argument('path', nargs='?', help='Ruta al directorio wp-content')
+    parser.add_argument('-o', '--output', help='Archivo de salida para el reporte')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Modo verbose - muestra TODO el proceso')
+    parser.add_argument('--no-color', action='store_true', help='Desactivar colores en output')
+    args = parser.parse_args()
+
+    show_logo()
+
+    if not args.path:
+        show_help()
+        return
+
+    if not os.path.exists(args.path):
+        print(f"[-] Error: La ruta {args.path} no existe")
+        return
+
+    scanner = WPContentScanner(args.path, verbose=args.verbose, use_colors=not args.no_color)
+    scanner.scan_directory()
+    scanner.generate_report(args.output)
+
+if __name__ == "__main__":
+    main()
