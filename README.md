@@ -25,17 +25,17 @@ USO :
 
 python ocelotl.py <ruta> [-o reporte.json] [-v] [--no-color]
 
--v Modo verbose, muestra todo el proceso.
+-v  Modo verbose, muestra todo el proceso.
 
--o <archivo> Guarda el reporte en formato JSON.
+-o  <archivo> Guarda el reporte en formato JSON.
 
---no-colorDesactiva colores en la salida.
+--no-color  Desactiva colores en la salida.
 
---exclude-extComa-separado: extensiones a excluir (ej: .log,.sql).
+--exclude-ext  Coma-separado: extensiones a excluir (ej: .log,.sql).
 
---exclude-path Coma-separado: subdirectorios a excluir (ej: logs,tmp).
+--exclude-path  Coma-separado: subdirectorios a excluir (ej: logs,tmp).
 
---help Muestra el menú de ayuda.
+--help  Muestra el menú de ayuda.
 
 EJEMPLO : python ocelotl.py "C:\\Documentos\\Carpeta" -o reporte.json -v --exclude-ext .log,.sql --exclude-path logs,tmp
 
