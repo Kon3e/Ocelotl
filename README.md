@@ -5,12 +5,11 @@
 📦 Repositorio oficial: [https://github.com/Kon3e/Ocelotl.git](https://githubsticas
 
 - Detección de credenciales de base de datos (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, etc.).
-- Identificación de claves API y tokens de acceso (Stripe, Google, GitHub, Slack, etc.).
+- Identificación de claves API y tokens de acceso ( Slack, etc.).
 - Reconocimiento de archivos sensibles por nombre (`.env`, `wp-config.php`, `.bak`, `.sql`, etc.).
 - Extracción de configuraciones relevantes (`AUTH_KEY`, `ftp_user`, etc.).
 - Soporte para colores en consola y modo verbose.
 - Generación de reportes en formato JSON.
-- Spinner animado durante el escaneo para mejorar la experiencia visual.
 
 ## 🧰 Requisitos
 
@@ -26,9 +25,6 @@ USO :
 
 python ocelotl.py <ruta> [-o reporte.json] [-v] [--no-color]
 
--v : Modo verbose, muestra todo el proceso.
--o <archivo> : Guarda el reporte en formato JSON.
---no-color : Desactiva colores en la salida.
---help : Muestra el menú de ayuda.
+-vModo verbose, muestra todo el proceso.-o <archivo>Guarda el reporte en formato JSON.--no-colorDesactiva colores en la salida.--exclude-extComa-separado: extensiones a excluir (ej: .log,.sql).--exclude-pathComa-separado: subdirectorios a excluir (ej: logs,tmp).--helpMuestra el menú de ayuda.
 
 Este software está destinado exclusivamente para fines educativos y auditorías autorizadas. El uso en sistemas sin consentimiento explícito puede constituir una violación legal. El autor no se responsabiliza por el uso indebido de esta herramienta.
