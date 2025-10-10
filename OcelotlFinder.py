@@ -9,10 +9,8 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-# Variable global para controlar el spinner
 spinner_running = False
 
-# Spinner animado para mostrar durante procesos largos
 def spinner_task(message="Procesando..."):
     for c in itertools.cycle(['|', '/', '-', '\\']):
         if not spinner_running:
@@ -22,7 +20,6 @@ def spinner_task(message="Procesando..."):
         time.sleep(0.1)
     sys.stdout.write('\r')
 
-# Logo ASCII de Ocelotl
 def show_logo():
     logo = r"""
        *******     ******  ******** **         *******   ********** **      
@@ -34,13 +31,11 @@ def show_logo():
  //*******   //****** /********/******** //*******      /**    /********
   ///////     //////  //////// ////////   ///////       //     //////// 
 
-                Ocelotl - Escáner de Seguridad
-                github : https://github.com/Kon3e/Ocelotl.git
+                Ocelotl - Escáner de Seguridad Universal
                     Autor: EduSec
     """
     print(logo)
 
-# Menú de ayuda
 def show_help():
     print("\nComandos disponibles:")
     print("  python ocelotl.py <ruta> [-o reporte.json] [-v] [--no-color]")
@@ -50,8 +45,7 @@ def show_help():
     print("  --no-color    Desactiva colores en la salida")
     print("  --help        Muestra este menú de ayuda\n")
 
-# Clase principal del escáner
-class WPContentScanner:
+class UniversalScanner:
     def __init__(self, base_path, verbose=False, use_colors=True):
         self.base_path = Path(base_path)
         self.verbose = verbose
@@ -80,16 +74,14 @@ class WPContentScanner:
 
         self.patterns = {
             'db_credentials': [
-                r'define\s*\(\s*[\'"]DB_NAME[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'define\s*\(\s*[\'"]DB_USER[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'define\s*\(\s*[\'"]DB_PASSWORD[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'define\s*\(\s*[\'"]DB_HOST[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'db_(name|user|password|host)\s*[=:]\s*[\'"]([^\'"]+)[\'"]',
+                r'DB_(NAME|USER|PASSWORD|HOST)\s*[=:]\s*[\'"]([^\'"]+)[\'"]',
+                r'define\s*\(\s*[\'"]DB_(NAME|USER|PASSWORD|HOST)[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]',
             ],
             'api_keys': [
                 r'[\'"]?api[_-]?key[\'"]?\s*[=:]\s*[\'"]([^\'"]{10,100})[\'"]',
                 r'[\'"]?secret[_-]?key[\'"]?\s*[=:]\s*[\'"]([^\'"]{10,100})[\'"]',
                 r'[\'"]?access[_-]?token[\'"]?\s*[=:]\s*[\'"]([^\'"]{10,100})[\'"]',
-                r'[\'"]?password[\'"]?\s*[=:]\s*[\'"]([^\'"]{3,50})[\'"]',
                 r'(sk_[a-zA-Z0-9]{20,50})',
                 r'(pk_[a-zA-Z0-9]{20,50})',
                 r'(AIza[0-9A-Za-z\\-_]{35})',
@@ -99,17 +91,18 @@ class WPContentScanner:
             ],
             'config_patterns': [
                 r'\$table_prefix\s*=\s*[\'"]([^\'"]+)[\'"]',
-                r'AUTH_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'SECURE_AUTH_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'LOGGED_IN_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'NONCE_KEY\s*,\s*[\'"]([^\'"]+)[\'"]',
-                r'ftp_user\s*=\s*[\'"]([^\'"]+)[\'"]',
-                r'ftp_pass\s*=\s*[\'"]([^\'"]+)[\'"]',
+                r'(AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY)\s*,\s*[\'"]([^\'"]+)[\'"]',
+                r'ftp_(user|pass)\s*=\s*[\'"]([^\'"]+)[\'"]',
+                r'(client_secret|client_id|app_secret|app_id)\s*[=:]\s*[\'"]([^\'"]+)[\'"]',
+                r'(password|passwd|pwd)\s*[=:]\s*[\'"]([^\'"]+)[\'"]',
             ]
         }
 
         self.target_extensions = {
-            '.php', '.js', '.json', '.yml', '.yaml', '.env', '.txt', '.config', '.ini', '.xml', '.py', '.rb', '.sh'
+            '.asp', '.aspx', '.bat', '.cfg', '.cfm', '.cgi', '.cmd', '.conf', '.config', '.crt', '.cs', '.csv',
+            '.db', '.dump', '.env', '.htaccess', '.htm', '.html', '.ini', '.js', '.json', '.jsp', '.jspx', '.jsx',
+            '.log', '.md', '.pem', '.php', '.pl', '.ps1', '.py', '.rb', '.sh', '.sql', '.sqlite', '.ts', '.tsx',
+            '.txt', '.vb', '.xml', '.yaml', '.yml'
         }
 
     def log(self, message, level="info", color=None):
@@ -161,10 +154,7 @@ class WPContentScanner:
                                 'full_match': match.groups()
                             }
                             matches.append(match_data)
-                            if pattern_type == 'db_credentials':
-                                self.log(f"CREDENCIAL DB en {file_path}:{line_number}", "found", "red")
-                            elif pattern_type == 'api_keys':
-                                self.log(f"API KEY en {file_path}:{line_number}", "found", "magenta")
+                            self.log(f"{pattern_type.upper()} en {file_path}:{line_number}", "found", "magenta")
         except Exception as e:
             self.results['stats']['errors'] += 1
             if self.verbose:
@@ -262,10 +252,9 @@ class WPContentScanner:
         print(f"{self.colors['yellow']}• Archivos sensibles:{self.colors['reset']} {len(self.results['sensitive_files'])}")
         print(f"{self.colors['blue']}• Configuraciones:{self.colors['reset']} {len(self.results['config_files'])}")
 
-# Función principal
 def main():
-    parser = argparse.ArgumentParser(description='Ocelotl - Escáner de Seguridad para content, archivos, con logging en tiempo real')
-    parser.add_argument('path', nargs='?', help='Ruta al directorio wp-content')
+    parser = argparse.ArgumentParser(description='Ocelotl - Escáner de Seguridad Universal para contenido y archivos')
+    parser.add_argument('path', nargs='?', help='Ruta al directorio a escanear')
     parser.add_argument('-o', '--output', help='Archivo de salida para el reporte')
     parser.add_argument('-v', '--verbose', action='store_true', help='Modo verbose - muestra TODO el proceso')
     parser.add_argument('--no-color', action='store_true', help='Desactivar colores en output')
@@ -281,7 +270,7 @@ def main():
         print(f"[-] Error: La ruta {args.path} no existe")
         return
 
-    scanner = WPContentScanner(args.path, verbose=args.verbose, use_colors=not args.no_color)
+    scanner = UniversalScanner(args.path, verbose=args.verbose, use_colors=not args.no_color)
     scanner.scan_directory()
     scanner.generate_report(args.output)
 
