@@ -31,7 +31,8 @@ def show_logo():
  //*******   //****** /********/******** //*******      /**    /********
   ///////     //////  //////// ////////   ///////       //     //////// 
 
-                Ocelotl - Escáner de Seguridad Universal
+                Ocelotl - Escaner de contenido
+                Github : https://github.com/Kon3e/Ocelotl.git
                     Autor: EduSec
     """
     print(logo)
