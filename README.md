@@ -1,4 +1,4 @@
-# 🐆 Ocelotl -
+# 🐆 Ocelotl - Escaner de contenido
 
 **Ocelotl** es una herramienta de análisis de contenido, diseñada para detectar credenciales expuestas, claves API, archivos sensibles y configuraciones inseguras dentro de archivos. Este script realiza un escaneo profundo de archivos con extensiones relevantes y genera un reporte detallado en formato JSON.
 
