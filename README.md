@@ -42,43 +42,75 @@ EJEMPLO : python ocelotl.py "C:\\Documentos\\Carpeta" -o reporte.json -v --exclu
 ======== MEJORAS =========
 
 Mejoras Implementadas
+
 Nuevos Patrones de Detección
-Credenciales de Administrador[gitguardian +1]
+
+Credenciales de Administrador
+
 •	Detecta usuarios admin, administrator, root, superuser con sus contraseñas
+
 •	Identifica roles administrativos en JSON/configuraciones
+
 •	Busca patrones específicos de WordPress admin
-Contraseñas Mejoradas[blogs.jsmon]
+
+Contraseñas Mejoradas
+
 •	Detección de passwords en múltiples formatos (JSON, XML, variables)
+
 •	Reconoce hashes comunes: bcrypt, MD5, SHA1, SHA256
+
 •	Captura contraseñas en contextos diversos
-Connection Strings[github +1]
-•	MongoDB, PostgreSQL, MySQL, Redis URIs completas
+
+Connection Strings 
+
+•	MongoDB, PostgreSQL, MySQL, Redis URIs completas 
+
 •	Detecta strings de conexión con credenciales embebidas
-URLs Sensibles[blogs.jsmon]
+
+URLs Sensibles
+
 •	IPs privadas (10.x.x.x, 192.168.x.x, 172.16-31.x.x)
+
 •	Dominios internos (.internal, .local, .dev, .staging)
+
 •	Localhost y endpoints de desarrollo
 Características Añadidas
+
 Categorización Mejorada
+
 •	Nueva categoría `admin_credentials` separada de credenciales normales
+
 •	Categoría `passwords` independiente para contraseñas generales
+
 •	Mejor organización en el reporte JSON
+
 Alertas Visuales
+
 •	Credenciales admin y passwords se marcan con 🔴 y nivel “CRITICAL”
+
 •	Mayor visibilidad para hallazgos importantes
+
 Archivos Sensibles Expandidos
+
 •	Detecta archivos `.key`, `credentials`, `secrets`, `id_rsa`
+
 •	Incluye archivos shadow, passwd, htpasswd
 
 CASOS DE USO
 
 El script ahora detecta efectivamente:
 •	Credenciales hardcodeadas en código fuente
+
 •	Tokens de servicios cloud (AWS, Azure, GCP)
+
 •	API keys de servicios populares (Stripe, GitHub, Slack)
+
 •	Contraseñas de bases de datos en archivos de configuración
+
 •	Usuarios administrativos con sus credenciales
+
 •	JWT tokens y Bearer tokens
+
 •	Connection strings con credenciales
 Los patrones están basados en colecciones de regex validadas por la comunidad de seguridad y cubren más de 100 tipos diferentes de secretos sensibles.
 
