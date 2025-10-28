@@ -2,7 +2,7 @@
 
 **Ocelotl** es una herramienta de análisis de contenido, diseñada para detectar credenciales expuestas, claves API, archivos sensibles y configuraciones inseguras dentro de archivos. Este script realiza un escaneo profundo de archivos con extensiones relevantes y genera un reporte detallado en formato JSON.
 
-📦 Repositorio oficial: [https://github.com/Kon3e/Ocelotl.git]
+📦 Repositorio oficial: https://github.com/Kon3e/Ocelotl.git
 
 - Detección de credenciales de base de datos (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, etc.).
 - Identificación de claves API y tokens de acceso ( Slack, etc.).
