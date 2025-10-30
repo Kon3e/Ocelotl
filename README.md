@@ -114,4 +114,7 @@ El script ahora detecta efectivamente:
 •	Connection strings con credenciales
 Los patrones están basados en colecciones de regex validadas por la comunidad de seguridad y cubren más de 100 tipos diferentes de secretos sensibles.
 
-Este software está destinado exclusivamente para fines educativos y auditorías autorizadas. El uso en sistemas sin consentimiento explícito puede constituir una violación legal. El autor no se responsabiliza por el uso indebido de esta herramienta.
+⚠️ Aviso Legal Importante ⚠️
+Este software está destinado exclusivamente para fines educativos y auditorías autorizadas.
+🔒 El uso en sistemas sin consentimiento explícito puede constituir una violación legal.
+🛑 El autor no se responsabiliza por el uso indebido de esta herramienta.
