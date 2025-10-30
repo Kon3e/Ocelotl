@@ -117,5 +117,7 @@ Los patrones están basados en colecciones de regex validadas por la comunidad d
 ⚠️ Aviso Legal Importante ⚠️
 
 Este software está destinado exclusivamente para fines educativos y auditorías autorizadas.
+
 🔒 El uso en sistemas sin consentimiento explícito puede constituir una violación legal.
+
 🛑 El autor no se responsabiliza por el uso indebido de esta herramienta.
