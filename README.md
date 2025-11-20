@@ -1,362 +1,405 @@
-# 🐆 Ocelotl v3.0 - Escáner de Seguridad Avanzado
+# 🐆 Ocelotl v3.0 - Advanced Security Scanner
 
-**Ocelotl** es una herramienta profesional de análisis de seguridad, diseñada para detectar credenciales expuestas, claves API, archivos sensibles y configuraciones inseguras dentro de código fuente y archivos de configuración. Esta versión 3.0 incorpora un sistema inteligente de validación que reduce falsos positivos en un **80%** y es **3x más rápida** que versiones anteriores.
+<div align="center">
 
-📦 **Repositorio oficial:** https://github.com/Kon3e/Ocelotl.git
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
+![Python](https://img.shields.io/badge/python-3.8+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-orange.svg)
+![Status](https://img.shields.io/badge/status-production-success.svg)
 
----
+**Herramienta profesional para detectar credenciales expuestas, API keys y secretos en código fuente**
 
-## ✨ Características Principales
+[Características](#-características) • [Instalación](#-instalación) • [Uso](#-uso) • [Ejemplos](#-ejemplos) • [Documentación](#-documentación)
 
-### 🔍 Detección Avanzada de Secretos
-
-* **Credenciales de Base de Datos** - MySQL, PostgreSQL, MongoDB, Redis, MSSQL
-  * Detección de `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`
-  * Connection strings completas con credenciales embebidas
-  * Variables de entorno y archivos de configuración
-
-* **Credenciales Administrativas** - Detección específica de usuarios privilegiados
-  * Usuarios `admin`, `administrator`, `root`, `superuser` con sus contraseñas
-  * Roles administrativos en JSON/configuraciones
-  * Patrones específicos de WordPress admin
-  * **Categoría separada** para máxima visibilidad
-
-* **API Keys & Tokens** - Más de 50 servicios soportados
-  * **AWS** - Access Keys (AKIA...), Secret Keys
-  * **GitHub** - Personal Access Tokens (ghp_...), OAuth (gho_...), App tokens
-  * **Google Cloud** - API Keys (AIza...)
-  * **Azure** - Secrets, Storage Keys, Subscription Keys
-  * **Stripe** - Secret Keys (sk_live_...), Publishable Keys
-  * **Slack** - Bot tokens (xoxb-...), User tokens, Webhooks
-  * **Twilio** - Account SID, Auth Token
-  * **SendGrid** - API Keys (SG....)
-  * **Heroku** - API Keys
-  * **JWT Tokens** - JSON Web Tokens completos
-  * **Bearer Tokens** - Tokens de autenticación genéricos
-
-* **Claves Privadas y Certificados**
-  * RSA Private Keys
-  * SSH Keys (`id_rsa`, `id_dsa`, `id_ecdsa`)
-  * PGP Private Keys
-  * OpenSSH Private Keys
-  * SSL/TLS Certificates
-
-* **Archivos Sensibles** - Reconocimiento por nombre y patrón
-  * `.env`, `wp-config.php`, `config.php`
-  * Archivos de backup (`.bak`, `.sql`, `.dump`, `~`)
-  * Archivos de credenciales (`.key`, `credentials`, `secrets`)
-  * SSH keys (`id_rsa`, `id_dsa`, `id_ecdsa`)
-  * Archivos del sistema (`shadow`, `passwd`, `htpasswd`)
-  * Configuraciones sensibles (`.aws/credentials`, `.npmrc`, `.pypirc`)
-
-* **Contraseñas y Hashes**
-  * Detección en múltiples formatos (JSON, XML, variables de entorno)
-  * Reconocimiento de hashes: **bcrypt**, **MD5**, **SHA1**, **SHA256**
-  * Captura en diversos contextos y lenguajes de programación
-
-* **Connection Strings Completas**
-  * MongoDB (`mongodb://user:pass@host`)
-  * PostgreSQL (`postgres://user:pass@host`)
-  * MySQL (`mysql://user:pass@host`)
-  * Redis (`redis://user:pass@host`)
-  * MSSQL (Server=...;Database=...;Password=...)
-
-* **URLs y Endpoints Sensibles**
-  * IPs privadas (10.x.x.x, 192.168.x.x, 172.16-31.x.x)
-  * Dominios internos (.internal, .local, .dev, .staging, .test)
-  * Localhost y endpoints de desarrollo
-
-### 🧠 Sistema de Validación Inteligente (NUEVO v3.0)
-
-* **Cálculo de Entropía de Shannon** - Determina la aleatoriedad del secreto
-  * Mayor entropía = mayor probabilidad de ser un secreto real
-  * Clasificación automática por nivel de confianza
-
-* **Filtrado Automático de Falsos Positivos**
-  * Detecta comentarios en código (8 tipos diferentes)
-  * Identifica valores de ejemplo/test/demo/placeholder
-  * Reconoce contraseñas débiles comunes
-  * Filtra declaraciones de variables vacías
-  * Ignora constantes de validación (PASSWORD_MIN_LENGTH, etc.)
-
-* **Sistema de Confianza Multi-Nivel**
-  * 🔴 **CRITICAL** - Muy alta probabilidad, requiere acción inmediata
-  * 🟣 **HIGH** - Alta confianza, revisar prioritariamente
-  * 🟡 **MEDIUM** - Confianza moderada, requiere validación
-  * 🔵 **LOW** - Baja confianza, posiblemente válido
-  * ⚪ **VERY_LOW** - Probablemente falso positivo
-
-* **Análisis de Variedad de Caracteres**
-  * Verifica presencia de mayúsculas, minúsculas, números, caracteres especiales
-  * Evalúa longitud mínima y complejidad del secreto
-
-### ⚡ Optimizaciones de Performance (NUEVO v3.0)
-
-* **Pre-compilación de Regex** - +200% de velocidad
-  * Patrones compilados una sola vez al inicio
-  * Reutilización eficiente en cada archivo
-
-* **Procesamiento Inteligente de Archivos**
-  * Detección rápida de archivos binarios
-  * Streaming para archivos grandes (>10MB)
-  * Manejo eficiente de archivos de varios GB
-
-* **Exclusión Automática de Directorios**
-  * `node_modules`, `.git`, `__pycache__` excluidos por defecto
-  * `venv`, `vendor`, `build`, `dist` ignorados automáticamente
-  * Configurable vía línea de comandos
-
-* **Reducción de Uso de Memoria**
-  * -50% de memoria consumida vs v2.0
-  * Procesamiento línea por línea cuando es necesario
-
-### 📊 Reportes Profesionales (NUEVO v3.0)
-
-* **Reporte JSON Estructurado**
-  * Metadatos completos (versión, duración, timestamp)
-  * Hallazgos organizados por tipo y confianza
-  * Estadísticas detalladas del escaneo
-  * Fácil integración con CI/CD
-
-* **Reporte HTML Interactivo** (NUEVO)
-  * Dashboard visual con gráficos
-  * Código de colores por criticidad
-  * Estadísticas en tiempo real
-  * Diseño responsive
-  * Listo para imprimir o compartir
-
-* **Output en Consola Mejorado**
-  * Colores y formato optimizado para Windows
-  * Símbolos ASCII compatibles
-  * Progreso en tiempo real
-  * Resumen ejecutivo al finalizar
-
-### 🎯 Categorización Mejorada
-
-* Nueva categoría **`admin_credentials`** separada de credenciales normales
-* Categoría **`passwords`** independiente para contraseñas generales
-* Categoría **`jwt_tokens`** para JSON Web Tokens
-* Categoría **`private_keys`** para claves privadas
-* Mejor organización en reportes JSON y HTML
-* Alertas visuales: Credenciales admin y passwords marcadas como **CRITICAL**
+</div>
 
 ---
 
-## 🧰 Requisitos
+## 📋 Tabla de Contenidos
 
-* **Python 3.8+** (3.10+ recomendado)
-* **Sin dependencias externas** - Solo librerías estándar de Python
+- [¿Qué es Ocelotl?](#-qué-es-ocelotl)
+- [Características](#-características)
+- [Novedades v3.0](#-novedades-v30)
+- [Instalación](#-instalación)
+- [Uso](#-uso)
+- [Ejemplos](#-ejemplos)
+- [Tipos de Secretos Detectados](#-tipos-de-secretos-detectados)
+- [Sistema de Confianza](#-sistema-de-confianza)
+- [Configuración Avanzada](#️-configuración-avanzada)
+- [Reportes](#-reportes)
+- [Casos de Uso](#-casos-de-uso)
+- [Roadmap](#-roadmap)
+- [Contribuir](#-contribuir)
+- [Licencia](#-licencia)
+- [Disclaimer](#️-disclaimer)
 
-**Instalación de dependencias:**
-```bash
-# ¡No se necesita ninguna! 🎉
-# Ocelotl v3.0 solo usa librerías estándar de Python
+---
+
+## 🎯 ¿Qué es Ocelotl?
+
+**Ocelotl** (náhuatl: jaguar/ocelote) es un scanner de seguridad avanzado diseñado para identificar información sensible expuesta en código fuente, archivos de configuración y documentación. 
+
+### ¿Por qué Ocelotl?
+
+- ✅ **Sin dependencias externas** - Solo librerías estándar de Python
+- ✅ **Detección inteligente** - Sistema de validación con cálculo de entropía
+- ✅ **Reducción de falsos positivos** - Filtrado automático de casos comunes
+- ✅ **Performance optimizado** - Manejo eficiente de archivos grandes
+- ✅ **Reportes profesionales** - JSON y HTML interactivo
+- ✅ **Fácil de usar** - Interfaz CLI intuitiva
+
+---
+
+## ✨ Características
+
+### 🔍 Detección Avanzada
+
+- **Credenciales de Base de Datos**
+  - MySQL, PostgreSQL, MongoDB, Redis, MSSQL
+  - Connection strings completas
+  - Variables de entorno
+  
+- **Credenciales Administrativas**
+  - Usuarios admin/root/superuser
+  - WordPress admin credentials
+  - Configuraciones de sistemas
+
+- **API Keys & Tokens**
+  - AWS (Access Keys, Secret Keys)
+  - GitHub (Personal Access Tokens, OAuth)
+  - Google Cloud (API Keys)
+  - Slack (Bot Tokens, Webhooks)
+  - Stripe (API Keys)
+  - JWT Tokens
+  - Bearer Tokens
+  - +50 tipos de tokens más
+
+- **Claves Privadas**
+  - RSA Private Keys
+  - SSH Keys (id_rsa, id_dsa, id_ecdsa)
+  - PGP Private Keys
+  - SSL/TLS Certificates
+
+- **Archivos Sensibles**
+  - `.env`, `config.php`, `wp-config.php`
+  - Backups (`.bak`, `.sql`, `.dump`)
+  - Logs con información sensible
+  - Archivos de credenciales (`.aws/credentials`, `.npmrc`)
+
+### 🧠 Validación Inteligente
+
+- **Cálculo de Entropía de Shannon**
+  - Determina aleatoriedad del secreto
+  - Mayor entropía = mayor probabilidad de ser real
+
+- **Filtrado de Falsos Positivos**
+  - Detecta comentarios automáticamente
+  - Identifica valores de ejemplo/test/demo
+  - Reconoce declaraciones de variables vacías
+  - Filtra contraseñas débiles comunes
+
+- **Sistema de Confianza Multi-nivel**
+  - CRITICAL: Alta entropía, alta probabilidad
+  - HIGH: Buena entropía con variedad de caracteres
+  - MEDIUM: Confianza moderada
+  - LOW: Baja confianza pero posiblemente válido
+  - VERY_LOW: Probablemente falso positivo
+
+### ⚡ Performance
+
+- **Escaneo Optimizado**
+  - Pre-compilación de regex
+  - Detección de archivos binarios
+  - Lectura streaming para archivos grandes (>10MB)
+  - Exclusión inteligente de directorios
+
+- **Exclusiones por Defecto**
+  - `node_modules`, `.git`, `__pycache__`
+  - `venv`, `vendor`, `build`, `dist`
+  - Configurable vía CLI
+
+### 📊 Reportes
+
+- **Consola Interactiva**
+  - Colores y símbolos para fácil lectura
+  - Resumen estadístico
+  - Indicadores de criticidad
+
+- **JSON Estructurado**
+  - Formato estandarizado
+  - Fácil integración con CI/CD
+  - Incluye metadatos completos
+
+- **HTML Interactivo**
+  - Dashboard visual
+  - Gráficos y estadísticas
+  - Filtros por tipo y confianza
+  - Responsivo y profesional
+
+---
+
+## 🎉 Novedades v3.0
+
+### Arquitectura Modular
+```
+Ocelotl_v3/
+├── ocelotl/
+│   ├── __init__.py          # Package principal
+│   ├── scanner.py           # Motor de escaneo
+│   ├── patterns.py          # Patrones regex optimizados
+│   ├── validators.py        # Sistema de validación
+│   ├── reporters.py         # Generadores de reportes
+│   └── utils.py             # Utilidades y UI
+├── tests/                   # Tests unitarios
+├── ocelotl.py              # CLI principal
+├── requirements.txt
+└── README.md
 ```
 
+### Mejoras Técnicas
+
+1. **Pre-compilación de Regex** (+300% velocidad)
+2. **Sistema de Validación Avanzado**
+3. **Streaming para Archivos Grandes**
+4. **Exclusión Inteligente de Directorios**
+5. **Reporte HTML Profesional**
+6. **Sistema de Logging Mejorado**
+7. **Manejo de Errores Robusto**
+
 ---
 
-## 🚀 Instalación
+## 📦 Instalación
+
+### Requisitos
+
+- Python 3.8 o superior
+- Sin dependencias externas
+
+### Instalación Rápida
 
 ```bash
-# Clonar el repositorio
+# Clonar repositorio
 git clone https://github.com/Kon3e/Ocelotl.git
 cd Ocelotl
 
-# ¡Listo para usar!
+# Sin instalación de dependencias necesaria!
 python ocelotl.py --help
 ```
 
 ### Instalación Global (Opcional)
 
-**Linux/Mac:**
 ```bash
+# Hacer ejecutable
 chmod +x ocelotl.py
-sudo ln -s $(pwd)/ocelotl.py /usr/local/bin/ocelotl
-ocelotl --help
-```
 
-**Windows:**
-```powershell
-# Agregar al PATH o crear alias
-# Ver documentación completa en INSTALL.md
+# Crear symlink (Linux/Mac)
+sudo ln -s $(pwd)/ocelotl.py /usr/local/bin/ocelotl
+
+# Usar desde cualquier lugar
+ocelotl /path/to/scan
 ```
 
 ---
 
-## 💻 Uso
+## 🚀 Uso
 
 ### Sintaxis Básica
 
 ```bash
-python ocelotl.py <ruta> [opciones]
+python ocelotl.py <path> [options]
 ```
 
 ### Opciones Disponibles
 
-| Opción | Descripción |
-|--------|-------------|
-| `-o FILE`, `--output FILE` | Guarda el reporte en formato JSON |
-| `--html` | Genera reporte HTML interactivo |
-| `-v`, `--verbose` | Modo verbose, muestra todo el proceso |
-| `--no-color` | Desactiva colores en la salida |
-| `--min-confidence LEVEL` | Nivel mínimo de confianza (VERY_LOW, LOW, MEDIUM, HIGH, CRITICAL) |
-| `--exclude-dirs DIRS` | Directorios a excluir (separados por coma) |
-| `--exclude-ext EXTS` | Extensiones a excluir (separadas por coma) |
-| `--help` | Muestra el menú de ayuda básico |
-| `--help-full` | Muestra ayuda completa con ejemplos |
+```
+Argumentos:
+  path                    Directorio a escanear
+
+Opciones de Output:
+  -o, --output FILE       Guardar reporte en JSON
+  --html                  Generar reporte HTML
+
+Opciones de Escaneo:
+  -v, --verbose           Modo verbose (output detallado)
+  --no-color              Desactivar colores
+  --min-confidence LEVEL  Nivel mínimo de confianza
+                          (VERY_LOW, LOW, MEDIUM, HIGH, CRITICAL)
+                          Default: LOW
+
+Exclusiones:
+  --exclude-dirs DIRS     Directorios a excluir (separados por coma)
+  --exclude-ext EXTS      Extensiones a excluir (separadas por coma)
+
+Ayuda:
+  -h, --help              Mostrar ayuda básica
+  --help-full             Mostrar ayuda completa con ejemplos
+```
 
 ---
 
-## 📝 Ejemplos de Uso
+## 💡 Ejemplos
 
-### Ejemplo 1: Escaneo Básico
+### Escaneo Básico
+
 ```bash
-python ocelotl.py /ruta/al/proyecto
+# Escanear un proyecto
+python ocelotl.py /path/to/project
 ```
 
-### Ejemplo 2: Con Reporte JSON
+### Con Reporte JSON
+
 ```bash
-python ocelotl.py /ruta/al/proyecto -o reporte_seguridad.json
+# Guardar resultados en JSON
+python ocelotl.py /path/to/project -o security_report.json
 ```
 
-### Ejemplo 3: Con Reporte HTML
+### Modo Verbose + HTML
+
 ```bash
-python ocelotl.py /ruta/al/proyecto --html
+# Output detallado y reporte HTML
+python ocelotl.py /path/to/project -v --html
 ```
 
-### Ejemplo 4: Modo Verbose
+### Filtrar por Confianza
+
 ```bash
-python ocelotl.py /ruta/al/proyecto -v
+# Solo mostrar hallazgos críticos y altos
+python ocelotl.py /path/to/project --min-confidence HIGH
 ```
 
-### Ejemplo 5: Solo Hallazgos Críticos
+### Excluir Directorios
+
 ```bash
-python ocelotl.py /ruta/al/proyecto --min-confidence CRITICAL
+# Excluir node_modules y vendor
+python ocelotl.py /path/to/project --exclude-dirs node_modules,vendor,build
 ```
 
-### Ejemplo 6: Excluir Directorios
-```bash
-python ocelotl.py /ruta/al/proyecto --exclude-dirs node_modules,vendor,cache
-```
+### Escaneo de Producción
 
-### Ejemplo 7: Excluir Extensiones
 ```bash
-python ocelotl.py /ruta/al/proyecto --exclude-ext .log,.tmp,.cache
-```
-
-### Ejemplo 8: Escaneo Completo (Recomendado para Producción)
-```bash
-python ocelotl.py /ruta/al/proyecto \
-  --min-confidence HIGH \
-  --exclude-dirs node_modules,.git,vendor,cache \
-  -o security_scan_$(date +%Y%m%d).json \
-  --html \
-  -v
-```
-
-### Ejemplo 9: WordPress
-```bash
-python ocelotl.py /var/www/wordpress/wp-content \
-  --exclude-dirs cache,uploads,languages \
+# Escaneo completo para CI/CD
+python ocelotl.py /path/to/project \
   --min-confidence MEDIUM \
-  --html \
-  -o wp_security_report.json
-```
-
-### Ejemplo 10: Windows (con espacios en la ruta)
-```powershell
-python ocelotl.py "C:\Documentos\Mi Proyecto" --html -o reporte.json
+  --exclude-dirs node_modules,.git,vendor \
+  -o report.json \
+  --html
 ```
 
 ---
 
-## 🎯 Casos de Uso
+## 🔐 Tipos de Secretos Detectados
 
-El script detecta efectivamente:
+### Base de Datos
 
-✅ **Credenciales hardcodeadas en código fuente**
-- Contraseñas de bases de datos en archivos de configuración
-- API keys en código JavaScript, Python, PHP, Java, etc.
-- Tokens de acceso en archivos de configuración
+| Tipo | Ejemplos |
+|------|----------|
+| MySQL | `DB_PASSWORD`, `mysql://user:pass@host` |
+| PostgreSQL | `postgres://user:pass@host/db` |
+| MongoDB | `mongodb://user:pass@host:27017` |
+| Redis | `redis://user:pass@host:6379` |
+| MSSQL | `Server=...;Database=...;Password=...` |
 
-✅ **Tokens de servicios cloud**
-- AWS Access Keys y Secret Keys
-- Azure Subscription Keys y Storage Keys
-- Google Cloud API Keys
-- Heroku API Keys y OAuth Tokens
+### Cloud Providers
 
-✅ **API keys de servicios populares**
-- Stripe (live y test keys)
-- GitHub Personal Access Tokens
-- Slack Bot Tokens y Webhooks
-- SendGrid API Keys
-- Twilio Account SID y Auth Token
-- MailChimp API Keys
+| Proveedor | Patrones |
+|-----------|----------|
+| AWS | `AKIA...`, Secret Access Keys |
+| Google Cloud | `AIza...` |
+| Azure | Varias claves y tokens |
+| Heroku | API Keys |
+| DigitalOcean | Personal Access Tokens |
 
-✅ **Contraseñas de bases de datos**
-- MySQL, PostgreSQL, MongoDB, Redis, MSSQL
-- Connection strings completas
-- Credenciales en variables de entorno
+### Servicios Populares
 
-✅ **Usuarios administrativos**
-- Credenciales de admin/root/superuser
-- WordPress admin credentials
-- Configuraciones de sistemas con acceso privilegiado
+| Servicio | Tipos |
+|----------|-------|
+| GitHub | PAT, OAuth Tokens |
+| Slack | Bot Tokens, Webhooks |
+| Stripe | API Keys (live/test) |
+| Twilio | Account SID, Auth Token |
+| SendGrid | API Keys |
+| MailChimp | API Keys |
 
-✅ **JWT tokens y Bearer tokens**
-- JSON Web Tokens completos
-- Tokens de autenticación OAuth
-- API Bearer Tokens
+### Otros
 
-✅ **Connection strings con credenciales**
-- URIs completas de MongoDB, PostgreSQL, MySQL, Redis
-- Strings de conexión de MSSQL con password
-- Credenciales embebidas en URLs
-
-✅ **Claves privadas y certificados**
-- SSH private keys (id_rsa, id_dsa, id_ecdsa)
-- RSA private keys
-- PGP private keys
-- SSL/TLS certificates
-
-✅ **Archivos sensibles por nombre**
-- .env, wp-config.php, config.php
-- Archivos de backup (.bak, .sql, .dump)
-- Archivos de credenciales del sistema
+- JWT Tokens
+- Bearer Tokens
+- SSH Private Keys
+- SSL/TLS Certificates
+- API Keys Genéricos
+- Contraseñas en código
 
 ---
 
-## 📊 Comparación v2.0 vs v3.0
+## 🎯 Sistema de Confianza
 
-| Métrica | v2.0 | v3.0 | Mejora |
-|---------|------|------|--------|
-| **Velocidad de escaneo** | 100 archivos/min | 300 archivos/min | **+300%** |
-| **Falsos positivos** | ~80% | ~15% | **-81%** |
-| **Tipos de secretos** | ~30 | 100+ | **+233%** |
-| **Uso de memoria** | Alto | Optimizado | **-50%** |
-| **Archivos grandes** | Crash >100MB | Maneja GB | **∞** |
-| **Sistema de validación** | ❌ No | ✅ Sí | **NUEVO** |
-| **Reporte HTML** | ❌ No | ✅ Sí | **NUEVO** |
-| **Niveles de confianza** | ❌ No | ✅ 5 niveles | **NUEVO** |
+Ocelotl utiliza múltiples factores para determinar la confianza:
+
+### Niveles de Confianza
+
+```
+🔴 CRITICAL
+   - Entropía > 4.5
+   - Longitud suficiente (>16 caracteres)
+   - Alta variedad de caracteres
+   - Ejemplo: "aK9$mP2&xL5#nQ8@wR4"
+
+🟣 HIGH
+   - Entropía > 4.0
+   - Buena variedad de caracteres
+   - Ejemplo: "MyP@ssw0rd!2024"
+
+🟡 MEDIUM
+   - Entropía > 3.0
+   - Variedad moderada
+   - Ejemplo: "password123"
+
+🔵 LOW
+   - Entropía > 2.0
+   - Poca variedad
+   - Ejemplo: "admin"
+
+⚪ VERY_LOW
+   - Entropía baja
+   - Probablemente falso positivo
+   - Ejemplo: "example", "test123"
+```
+
+### Factores Considerados
+
+1. **Entropía de Shannon** - Medida de aleatoriedad
+2. **Longitud del secreto** - Mínimo 8 caracteres
+3. **Variedad de caracteres** - Mayús, minús, números, especiales
+4. **Contexto** - Comentarios, variables de ejemplo
+5. **Palabras clave** - test, demo, example, sample
 
 ---
 
-## 🔧 Integración CI/CD
+## ⚙️ Configuración Avanzada
 
-### Git Pre-Commit Hook
+### Crear Alias (Linux/Mac)
 
 ```bash
-#!/bin/bash
-# .git/hooks/pre-commit
+# Agregar a ~/.bashrc o ~/.zshrc
+alias ocelotl='python /path/to/Ocelotl/ocelotl.py'
 
-python ocelotl.py . --min-confidence HIGH
+# Usar
+ocelotl /path/to/scan -v --html
+```
+
+### Integración con Git Hooks
+
+```bash
+# .git/hooks/pre-commit
+#!/bin/bash
+python ocelotl.py . --min-confidence HIGH -o /tmp/scan.json
 if [ $? -eq 2 ]; then
-    echo "❌ Secrets detected! Commit blocked."
+    echo "❌ Security issues detected!"
     exit 1
 fi
 ```
 
-### GitHub Actions
+### Integración CI/CD (GitHub Actions)
 
 ```yaml
 name: Security Scan
@@ -366,231 +409,225 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-      - name: Clone Ocelotl
-        run: git clone https://github.com/Kon3e/Ocelotl.git
-      - name: Run Security Scan
+      - uses: actions/checkout@v2
+      - name: Run Ocelotl
         run: |
-          python Ocelotl/ocelotl.py . \
-            --min-confidence HIGH \
-            -o security-report.json
+          git clone https://github.com/Kon3e/Ocelotl.git
+          python Ocelotl/ocelotl.py . --min-confidence HIGH -o report.json
       - name: Upload Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: security-report
-          path: security-report.json
-```
-
-### GitLab CI
-
-```yaml
-security_scan:
-  stage: test
-  image: python:3.8
-  script:
-    - git clone https://github.com/Kon3e/Ocelotl.git
-    - python Ocelotl/ocelotl.py . --min-confidence HIGH -o report.json
-  artifacts:
-    paths:
-      - report.json
-    expire_in: 1 week
+          path: report.json
 ```
 
 ---
 
-## 🆕 Novedades en v3.0
+## 📈 Reportes
 
-### Arquitectura Completamente Rediseñada
+### Reporte de Consola
 
-✨ **Código Modular** - Separado en 7 módulos especializados
 ```
-ocelotl/
-├── scanner.py      # Motor de escaneo optimizado
-├── patterns.py     # 100+ patrones organizados y pre-compilados
-├── validators.py   # Sistema anti-falsos positivos
-├── reporters.py    # Generadores JSON/HTML
-├── utils.py        # UI y utilidades
-└── __init__.py
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                          OCELOTL                                          ║
+║              🐆 Advanced Security Scanner & Secret Detector 🐆            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+✓ [SUCCESS] [12:34:56] Scan completed!
+
+════════════════════════════════════════════════════════════════════════════
+                        SCAN SUMMARY
+════════════════════════════════════════════════════════════════════════════
+⏱  Duration: 0:01:23
+📂 Files Scanned: 1,234
+🔍 Total Matches: 45
+❌ Errors: 0
+
+FINDINGS BY CONFIDENCE:
+  ⚡ CRITICAL: 5
+  ◆ HIGH:     8
+  ⚠ MEDIUM:   12
+  ℹ LOW:      15
+  • VERY_LOW: 5
+
+FINDINGS BY TYPE:
+  👤 Admin Credentials: 3
+  🔑 Passwords: 7
+  🎫 API Keys/Tokens: 12
+  🗄️  DB Credentials: 8
+  📄 Sensitive Files: 15
+════════════════════════════════════════════════════════════════════════════
 ```
 
-✨ **Sistema de Validación Inteligente**
-- Cálculo de entropía de Shannon para determinar aleatoriedad
-- Filtrado automático de comentarios (8 tipos)
-- Detección de keywords de ejemplo (30+ palabras)
-- Análisis de variedad y complejidad de caracteres
-- 5 niveles de confianza para priorización
+### Reporte JSON
 
-✨ **Performance Extremo**
-- Pre-compilación de todos los patrones regex (+200% velocidad)
-- Streaming para archivos grandes (maneja archivos de varios GB)
-- Detección ultra-rápida de archivos binarios
-- Exclusión automática de directorios comunes
+```json
+{
+  "metadata": {
+    "tool": "Ocelotl",
+    "version": "3.0",
+    "scan_time": "2024-01-15T12:34:56",
+    "duration": "0:01:23"
+  },
+  "summary": {
+    "files_scanned": 1234,
+    "matches_found": 45,
+    "false_positives_filtered": 23
+  },
+  "findings": {
+    "api_keys": [
+      {
+        "type": "api_keys",
+        "match": "AKIA...",
+        "file": "/path/to/config.py",
+        "line": 42,
+        "validation": {
+          "confidence": "CRITICAL",
+          "entropy": 4.8,
+          "is_likely_false_positive": false
+        }
+      }
+    ]
+  }
+}
+```
 
-✨ **Reportes Profesionales**
-- Reporte HTML interactivo con dashboard
-- JSON estructurado con metadatos completos
-- Estadísticas detalladas por tipo y confianza
-- Output optimizado para Windows (sin emojis problemáticos)
+### Reporte HTML
 
-✨ **Detección Ampliada**
-- +70 nuevos tipos de secretos
-- JWT tokens, Private keys, Azure secrets
-- Heroku, Twilio, SendGrid, MailChimp
-- Connection strings para más bases de datos
-- URLs sensibles e IPs privadas
-
-✨ **Testing y Calidad**
-- Suite de 15+ tests unitarios
-- Validación automática de patrones
-- Manejo robusto de errores
-- Documentación exhaustiva (9 archivos)
+El reporte HTML incluye:
+- Dashboard interactivo con estadísticas
+- Gráficos visuales
+- Hallazgos organizados por tipo
+- Badges de confianza con colores
+- Responsivo para móviles
+- Código con syntax highlighting
 
 ---
 
-## 📚 Documentación Incluida
+## 🎯 Casos de Uso
 
-| Archivo | Descripción |
-|---------|-------------|
-| `README.md` | Este archivo - Documentación principal |
-| `INSTALL.md` | Guía detallada de instalación y uso |
-| `COMPARISON.md` | Comparación detallada v2.0 vs v3.0 |
-| `CHANGELOG.md` | Historial completo de cambios |
-| `INDEX.md` | Índice de navegación de toda la documentación |
-| `RESUMEN.md` | Resumen ejecutivo |
-| `START_HERE.txt` | Guía rápida de inicio |
-| `LICENSE` | Licencia MIT |
-
----
-
-## 🧪 Testing
+### 1. Auditoría de Seguridad
 
 ```bash
-# Ejecutar tests unitarios
-python tests/test_ocelotl.py
-
-# Probar con proyecto de ejemplo incluido
-python ocelotl.py example_project --html
+# Escaneo completo de un proyecto antes de deploy
+python ocelotl.py /var/www/project \
+  --min-confidence MEDIUM \
+  -o audit_$(date +%Y%m%d).json \
+  --html
 ```
 
----
+### 2. Code Review
 
-## 🏗️ Arquitectura del Proyecto
-
-```
-Ocelotl_v3/
-├── ocelotl.py              # CLI principal
-├── ocelotl/                # Módulos del sistema
-│   ├── __init__.py
-│   ├── scanner.py          # Motor de escaneo
-│   ├── patterns.py         # Patrones regex
-│   ├── validators.py       # Validación inteligente
-│   ├── reporters.py        # Generadores de reportes
-│   └── utils.py            # Utilidades y UI
-├── tests/                  # Tests unitarios
-│   └── test_ocelotl.py
-├── example_project/        # Proyecto de ejemplo
-│   ├── config.py           # Con secretos para detectar
-│   └── false_positives.py  # Ejemplos de filtrado
-├── README.md               # Documentación principal
-├── INSTALL.md              # Guía de instalación
-├── COMPARISON.md           # Comparación v2 vs v3
-├── CHANGELOG.md            # Historial de cambios
-├── LICENSE                 # Licencia MIT
-└── requirements.txt        # Sin dependencias!
+```bash
+# Revisar un pull request
+python ocelotl.py ./branch-feature \
+  --min-confidence HIGH \
+  -v
 ```
 
----
+### 3. Limpieza de Repositorios
 
-## 🤝 Contribuir
+```bash
+# Encontrar todos los secretos antes de hacer público un repo
+python ocelotl.py . \
+  --exclude-dirs .git,node_modules \
+  -o secrets_to_remove.json
+```
 
-¡Las contribuciones son bienvenidas! Puedes contribuir de las siguientes formas:
+### 4. Compliance & Regulations
 
-- 🐛 Reportar bugs
-- 💡 Sugerir nuevas características
-- 📝 Mejorar la documentación
-- 🔧 Agregar nuevos patrones de detección
-- ✅ Escribir tests
-- 🌍 Traducir a otros idiomas
-
-### Proceso de Contribución
-
-1. Fork el proyecto
-2. Crea tu Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la Branch (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-## ⚠️ Aviso Legal Importante
-
-**Este software está destinado exclusivamente para fines educativos y auditorías de seguridad autorizadas.**
-
-### ⚖️ Uso Permitido
-
-✅ Auditorías de seguridad con autorización explícita
-✅ Análisis de tus propios proyectos y código
-✅ Fines educativos y de investigación
-✅ Cumplimiento de normativas de seguridad (PCI-DSS, HIPAA, etc.)
-
-### 🚫 Uso Prohibido
-
-❌ Escaneo de sistemas sin consentimiento explícito
-❌ Acceso no autorizado a sistemas o redes
-❌ Uso malicioso o con intención de causar daño
-❌ Violación de términos de servicio de plataformas
-
-### 🛡️ Disclaimer
-
-🔒 **El uso no autorizado de esta herramienta puede constituir una violación de leyes locales, nacionales e internacionales.**
-
-🛑 **El autor no se responsabiliza por el uso indebido de esta herramienta. El usuario es el único responsable de garantizar que tiene autorización apropiada antes de escanear cualquier sistema.**
-
-⚠️ **Esta herramienta se proporciona "tal cual" sin garantías de ningún tipo, expresas o implícitas.**
-
----
-
-## 📞 Soporte y Contacto
-
-- **GitHub Issues:** [Reportar problemas](https://github.com/Kon3e/Ocelotl/issues)
-- **GitHub Discussions:** [Hacer preguntas](https://github.com/Kon3e/Ocelotl/discussions)
-- **Documentación:** Ver archivos .md incluidos en el proyecto
-- **Repositorio:** https://github.com/Kon3e/Ocelotl
-
----
-
-## 🌟 Agradecimientos
-
-Los patrones de detección están basados en colecciones de regex validadas por la comunidad de seguridad y cubren más de **100 tipos diferentes de secretos sensibles**.
-
-Inspirado por herramientas como truffleHog, detect-secrets y gitleaks.
+```bash
+# Escaneo para cumplimiento (PCI-DSS, HIPAA, etc)
+python ocelotl.py /app/src \
+  --min-confidence CRITICAL \
+  -o compliance_report.json
+```
 
 ---
 
 ## 🗺️ Roadmap
 
-### v3.1 (Próximamente)
-- [ ] Machine Learning para detección de patrones custom
+### v3.1 (Próximo)
+- [ ] Soporte para más cloud providers (Alibaba, IBM, Oracle)
+- [ ] Detección de secrets en imágenes Docker
 - [ ] Plugin para VSCode
-- [ ] API REST para integración
-- [ ] Soporte para más cloud providers
+- [ ] Base de datos de secretos conocidos
 
-### v4.0 (Futuro)
+### v3.2
+- [ ] Machine Learning para detección de patrones custom
+- [ ] API REST para integración
+- [ ] Dashboard web en tiempo real
+- [ ] Modo diff (solo cambios recientes)
+
+### v4.0
 - [ ] Análisis de flujo de datos
+- [ ] Detección de exposición indirecta
 - [ ] Remediación automática
 - [ ] Integración con vaults (HashiCorp, AWS Secrets Manager)
-- [ ] Dashboard web en tiempo real
 
 ---
 
+## 🤝 Contribuir
+
+¡Las contribuciones son bienvenidas!
+
+### Cómo Contribuir
+
+1. Fork el proyecto
+2. Crea una branch (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la branch (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+### Áreas de Contribución
+
+- 🐛 Reportar bugs
+- 💡 Sugerir nuevas características
+- 📝 Mejorar documentación
+- 🔧 Agregar nuevos patrones de detección
+- ✅ Escribir tests
+- 🌍 Traducciones
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
+
+---
+
+## ⚠️ Disclaimer
+
+**IMPORTANTE: USO RESPONSABLE**
+
+- ✅ **Permitido**: Auditorías de seguridad autorizadas
+- ✅ **Permitido**: Análisis de tus propios proyectos
+- ✅ **Permitido**: Investigación y educación
+
+- ❌ **Prohibido**: Escaneo de sistemas sin autorización
+- ❌ **Prohibido**: Uso malicioso o ilegal
+- ❌ **Prohibido**: Violación de términos de servicio
+
+**El autor no se responsabiliza por el uso indebido de esta herramienta.**
+
+El uso no autorizado puede constituir una violación de leyes locales, nacionales e internacionales. Esta herramienta se proporciona "tal cual" sin garantías de ningún tipo.
+
+---
+
+## 📞 Contacto & Soporte
+
+- **GitHub**: [@Kon3e](https://github.com/Kon3e)
+- **Issues**: [GitHub Issues](https://github.com/Kon3e/Ocelotl/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Kon3e/Ocelotl/discussions)
+
+---
+
+<div align="center">
+
 **Hecho con ❤️ por EduSec**
+
+⭐ Si te gusta Ocelotl, dale una estrella en GitHub!
+
+[⬆ Volver arriba](#-ocelotl-v30---advanced-security-scanner)
+
+</div>

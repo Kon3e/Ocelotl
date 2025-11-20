@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "tool": "Ocelotl",
+    "version": "3.0",
+    "scan_time": "2025-11-20T03:05:24.783340",
+    "end_time": "2025-11-20T03:05:24.988079",
+    "duration": "0:00:00"
+  },
+  "summary": {
+    "files_scanned": 2,
+    "matches_found": 7,
+    "false_positives_filtered": 24,
+    "start_time": "2025-11-20T03:05:24.783340",
+    "errors": 0,
+    "end_time": "2025-11-20T03:05:24.988079"
+  },
+  "findings": {
+    "admin_credentials": [],
+    "passwords": [
+      {
+        "type": "passwords",
+        "match": "SECRET = \"9876543210fedcba9876543210fedcba\"",
+        "file": "example_project/config.py",
+        "line": 28,
+        "context": "API_SECRET = \"9876543210fedcba9876543210fedcba\"",
+        "full_match": [
+          "SECRET",
+          "9876543210fedcba9876543210fedcba"
+        ],
+        "validation": {
+          "entropy": 4.54,
+          "confidence": "CRITICAL",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      }
+    ],
+    "credentials": [
+      {
+        "type": "db_credentials",
+        "match": "DB_HOST = \"localhost\"",
+        "file": "example_project/config.py",
+        "line": 2,
+        "context": "DB_HOST = \"localhost\"",
+        "full_match": [
+          "DB",
+          "HOST",
+          "localhost"
+        ],
+        "validation": {
+          "entropy": 4.01,
+          "confidence": "HIGH",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      },
+      {
+        "type": "db_credentials",
+        "match": "DB_NAME = \"production_db\"",
+        "file": "example_project/config.py",
+        "line": 5,
+        "context": "DB_NAME = \"production_db\"",
+        "full_match": [
+          "DB",
+          "NAME",
+          "production_db"
+        ],
+        "validation": {
+          "entropy": 4.24,
+          "confidence": "HIGH",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      }
+    ],
+    "api_keys": [
+      {
+        "type": "api_keys",
+        "match": "api_key = \"xxx-xxx-xxx\"",
+        "file": "example_project/false_positives.py",
+        "line": 50,
+        "context": "dev_api_key = \"xxx-xxx-xxx\"",
+        "full_match": [
+          "xxx-xxx-xxx"
+        ],
+        "validation": {
+          "entropy": 3.02,
+          "confidence": "MEDIUM",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      },
+      {
+        "type": "api_keys",
+        "match": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "file": "example_project/config.py",
+        "line": 18,
+        "context": "AUTH_TOKEN = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\"",
+        "full_match": [],
+        "validation": {
+          "entropy": 5.44,
+          "confidence": "CRITICAL",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      }
+    ],
+    "private_keys": [],
+    "jwt_tokens": [
+      {
+        "type": "jwt_tokens",
+        "match": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "file": "example_project/config.py",
+        "line": 18,
+        "context": "AUTH_TOKEN = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\"",
+        "full_match": [],
+        "validation": {
+          "entropy": 5.44,
+          "confidence": "CRITICAL",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      }
+    ],
+    "config_files": [
+      {
+        "type": "config_patterns",
+        "match": "SMTP_USER = \"notifications@company.com\"",
+        "file": "example_project/config.py",
+        "line": 31,
+        "context": "SMTP_USER = \"notifications@company.com\"",
+        "full_match": [
+          "USER",
+          "notifications@company.com"
+        ],
+        "validation": {
+          "entropy": 4.41,
+          "confidence": "HIGH",
+          "is_likely_false_positive": false,
+          "false_positive_reasons": [],
+          "has_sufficient_length": true,
+          "has_character_variety": true
+        }
+      }
+    ],
+    "sensitive_files": []
+  },
+  "statistics": {
+    "by_type": {
+      "admin_credentials": 0,
+      "passwords": 1,
+      "credentials": 2,
+      "api_keys": 2,
+      "private_keys": 0,
+      "jwt_tokens": 1,
+      "config_files": 1,
+      "sensitive_files": 0
+    },
+    "by_confidence": {
+      "CRITICAL": 2,
+      "HIGH": 2,
+      "MEDIUM": 1,
+      "LOW": 0,
+      "VERY_LOW": 0
+    },
+    "false_positives_filtered": 0,
+    "total_findings": 7
+  }
+}

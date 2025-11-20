@@ -1,10 +1,12 @@
-argparse
-itertools
-json
-os
-pathlib
-re
-sys
-threading
-time
-datetime
+# Ocelotl v3.0 - Dependencias
+# Python 3.8+
+
+# No se requieren dependencias externas
+# Ocelotl utiliza solo librerías estándar de Python para máxima compatibilidad
+
+# Opcional: Para desarrollo y testing
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=22.0.0
+# flake8>=5.0.0
+# mypy>=0.990
